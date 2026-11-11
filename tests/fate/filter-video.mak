@@ -763,6 +763,9 @@ FATE_FILTER-$(call ALLYES, TESTSRC2_FILTER SPLIT_FILTER AVGBLUR_FILTER        \
                            METADATA_FILTER WRAPPED_AVFRAME_ENCODER NULL_MUXER \
                            PIPE_PROTOCOL) += $(FATE_FILTER_REFCMP_METADATA-yes)
 
+FATE_FFPROBE-$(call ALLYES, A53INJECT_FILTER TESTSRC_FILTER LAVFI_INDEV) += fate-filter-a53inject
+fate-filter-a53inject: CMD = run ffprobe$(PROGSSUF)$(EXESUF) -v 0 -bitexact -f lavfi -i "testsrc=d=2.5:r=10:s=64x64,a53inject=path=$(SRC_PATH)/tests/a53inject.records" -show_entries frame=pts:frame_side_data_list -of compact
+
 FATE_SAMPLES_FFPROBE += $(FATE_METADATA_FILTER-yes)
 FATE_SAMPLES_FFMPEG += $(FATE_FILTER_SAMPLES-yes)
 FATE_FFMPEG += $(FATE_FILTER-yes)

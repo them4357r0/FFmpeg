@@ -8304,6 +8304,44 @@ build.
 
 Below is a description of the currently available video filters.
 
+@section a53inject
+
+Attach CEA-608/708 closed caption side data (@code{AV_FRAME_DATA_A53_CC})
+to video frames, taking the data from a file or FIFO.
+
+The source is read non-blockingly once per frame, so a missing or late
+record never stalls the filter. Frames without a record pass unchanged.
+Records are lines of the form
+@example
+MPCC1 <n> <base64 cc_data>
+@end example
+where @var{n} is the 0-based index of the frame at the output of this filter
+and @var{cc_data} is the @code{AV_FRAME_DATA_A53_CC} payload (a multiple of
+3 bytes, at most 93). Several records for the same index are concatenated.
+Records for frames that already passed, malformed records and records beyond
+the buffer bound are dropped and counted; the counters are logged at
+@code{verbose} level when the filter is closed. End of file (for a FIFO: after
+the writer closed it once data was received) ends the injection.
+Encoders that support it (such as @code{libx264} and @code{h264_nvenc}) write
+the side data as an A53 SEI message.
+
+It accepts the following options:
+
+@table @option
+@item path
+File or FIFO to read. Required. For a FIFO, the writer should hold it open
+before the filter starts.
+@item max_pending
+Maximum number of buffered records for future frames; when exceeded the oldest
+is dropped. Default is 256.
+@end table
+
+@subsection Example
+Inject the records of @file{cc.fifo} before scaling and encoding:
+@example
+ffmpeg -i in.ts -vf a53inject=path=cc.fifo,scale=1280:720 -c:v libx264 out.ts
+@end example
+
 @section addroi
 
 Mark a region of interest in a video frame.
